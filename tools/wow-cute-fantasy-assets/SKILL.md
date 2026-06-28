@@ -61,7 +61,7 @@ Keep the same side-view direction, similar visual scale, and consistent foot bas
 
 Current asset names:
 
-- `assets/characters/hero-warrior-walk-6f.png`
+- `assets/characters/hero-ember-archer-run-6f-transparent.png`
 - `assets/animations/hero-ember-archer-attack-6f-transparent.png`
 
 ## Prompt Rules

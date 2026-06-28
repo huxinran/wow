@@ -6,10 +6,13 @@ const enemyHpBar = document.getElementById("enemyHp");
 ctx.imageSmoothingEnabled = false;
 
 const heroRunSprite = new Image();
-heroRunSprite.src = "./assets/characters/hero-warrior-walk-6f.png";
+heroRunSprite.src = "./assets/characters/hero-ember-archer-run-6f-transparent.png";
 
 const heroAttackSprite = new Image();
 heroAttackSprite.src = "./assets/animations/hero-ember-archer-attack-6f-transparent.png";
+
+const gruntSprite = new Image();
+gruntSprite.src = "./assets/animations/enemy-horned-grunt-walk-hurt-death-transparent.png";
 
 const projectiles = [];
 const explosions = [];
@@ -484,7 +487,7 @@ function drawHeroSprite(unit) {
     : Math.floor(world.time * 9 + unit.lane * 1.7) % frameCount;
   const crop = isAttacking
     ? { y: 195, height: 320, drawX: -74, drawWidth: 186, drawHeight: 164 }
-    : { y: 150, height: 420, drawX: -84, drawWidth: 178, drawHeight: 178 };
+    : { y: 195, height: 330, drawX: -78, drawWidth: 184, drawHeight: 166 };
   const bob = Math.sin(world.time * 5 + unit.lane) * 2 * scale;
 
   ctx.save();
@@ -599,6 +602,11 @@ function drawPixelArcher(unit) {
 }
 
 function drawGrunt(unit) {
+  if (gruntSprite.complete && gruntSprite.naturalWidth > 0) {
+    drawGruntSprite(unit);
+    return;
+  }
+
   const scale = laneScale(unit);
   const defeated = unit.hp <= 0;
   const walkFrame = Math.floor(world.time * 8 + unit.lane * 1.7) % 6;
@@ -678,6 +686,49 @@ function drawGrunt(unit) {
   }
 
   drawHealthBar(0, -160, 66, 7, unit.hp / unit.maxHp);
+  ctx.restore();
+}
+
+function drawGruntSprite(unit) {
+  const scale = laneScale(unit);
+  const defeated = unit.hp <= 0;
+  const walkFrame = Math.floor(world.time * 8 + unit.lane * 1.7) % 6;
+  const hurtProgress = unit.hurtTimer > 0 ? 1 - unit.hurtTimer / 0.24 : 0;
+  const hurtFrame = unit.hurtTimer > 0 ? Math.min(2, Math.floor(hurtProgress * 3)) : -1;
+  const deathProgress = defeated ? clamp(unit.defeatedTimer / 0.9, 0, 1) : 0;
+  const frameWidth = gruntSprite.naturalWidth / 6;
+  const frameHeight = gruntSprite.naturalHeight / 3;
+  const sourceRow = defeated ? 2 : hurtFrame >= 0 ? 1 : 0;
+  const sourceFrame = defeated ? Math.min(5, Math.floor(deathProgress * 6)) : hurtFrame >= 0 ? hurtFrame : walkFrame;
+  const bob = defeated ? 0 : Math.sin(world.time * 7 + unit.lane) * 2;
+  const hurt = unit.hurtTimer > 0 ? Math.sin(world.time * 70) * 7 : 0;
+  const fade = defeated ? clamp(1 - unit.defeatedTimer / 0.9, 0.28, 1) : 1;
+
+  ctx.save();
+  ctx.translate(unit.x + hurt * scale, laneY(unit) + bob * scale);
+  ctx.scale(scale, scale);
+  ctx.globalAlpha = fade;
+  drawShadow(0, 7, 45, 11);
+  ctx.drawImage(
+    gruntSprite,
+    sourceFrame * frameWidth,
+    sourceRow * frameHeight,
+    frameWidth,
+    frameHeight,
+    -76,
+    -160,
+    126,
+    168,
+  );
+
+  if (hurtFrame >= 0) {
+    ctx.globalAlpha = hurtFrame === 0 ? 0.45 : 0.24;
+    ctx.fillStyle = "#fff6c9";
+    rectPx(-58, -142, 92, 116);
+    ctx.globalAlpha = fade;
+  }
+
+  drawHealthBar(-12, -166, 66, 7, unit.hp / unit.maxHp);
   ctx.restore();
 }
 
