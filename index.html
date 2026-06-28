@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WoW Side-Scroller Demo</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <section class="stage-panel" aria-label="WoW-inspired battle demo">
+        <canvas id="game" width="1280" height="720"></canvas>
+        <div class="hud" aria-hidden="true">
+          <div class="hud-card">
+            <span class="hud-label">Hero</span>
+            <div class="bar"><span id="heroHp"></span></div>
+          </div>
+          <div class="hud-card">
+            <span class="hud-label">Enemy</span>
+            <div class="bar enemy"><span id="enemyHp"></span></div>
+          </div>
+        </div>
+        <div class="controls" aria-label="Controls">
+          <span>A / D Move</span>
+          <span>Space Attack</span>
+          <span>R Reset</span>
+        </div>
+      </section>
+    </main>
+    <script src="./src/game.js"></script>
+  </body>
+</html>
