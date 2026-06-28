@@ -3,6 +3,9 @@ const ctx = canvas.getContext("2d");
 const heroHpBar = document.getElementById("heroHp");
 const enemyHpBar = document.getElementById("enemyHp");
 
+const warriorWalk = new Image();
+warriorWalk.src = "./assets/characters/hero-warrior-walk-6f.png";
+
 const keys = new Set();
 const projectiles = [];
 const hitSparks = [];
@@ -15,7 +18,7 @@ const world = {
 };
 
 const hero = {
-  x: 245,
+  x: 300,
   y: world.floor,
   width: 78,
   height: 132,
@@ -46,7 +49,7 @@ function clamp(value, min, max) {
 }
 
 function resetGame() {
-  hero.x = 245;
+  hero.x = 300;
   hero.hp = hero.maxHp;
   hero.facing = 1;
   hero.state = "idle";
@@ -315,6 +318,54 @@ function drawCharacter(unit, palette) {
   ctx.restore();
 }
 
+function drawHero(unit) {
+  if (!warriorWalk.complete || warriorWalk.naturalWidth === 0) {
+    drawCharacter(unit, {
+      robe: "#315d8f",
+      trim: "#d6b45f",
+      arm: "#3c6fa7",
+      boots: "#2a211d",
+      skin: "#e5b687",
+      hair: "#ece5ce",
+      staff: "#6f5434",
+      orb: "#60ead0",
+      shadow: "rgba(0, 0, 0, 0.28)",
+    });
+    return;
+  }
+
+  const frameCount = 6;
+  const frameWidth = warriorWalk.naturalWidth / frameCount;
+  const sourceY = 120;
+  const sourceHeight = 470;
+  const walkFrame = Math.floor(world.time * 12) % frameCount;
+  const frame = unit.state === "run" ? walkFrame : 1;
+  const bob = unit.state === "run" ? Math.sin(world.time * 14) * 3 : Math.sin(world.time * 5) * 2;
+  const recoil = unit.state === "attack" ? Math.sin(unit.attackTimer * 22) * 10 : 0;
+  const drawWidth = 196;
+  const drawHeight = 254;
+
+  ctx.save();
+  ctx.translate(unit.x - recoil * unit.facing, unit.y + bob);
+  ctx.scale(unit.facing, 1);
+  ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
+  ctx.beginPath();
+  ctx.ellipse(0, 7, 48, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.drawImage(
+    warriorWalk,
+    frame * frameWidth,
+    sourceY,
+    frameWidth,
+    sourceHeight,
+    -drawWidth * 0.48,
+    -drawHeight,
+    drawWidth,
+    drawHeight,
+  );
+  ctx.restore();
+}
+
 function roundedRect(x, y, width, height, radius) {
   ctx.beginPath();
   ctx.moveTo(x + radius, y);
@@ -367,17 +418,7 @@ function drawSparks() {
 
 function draw() {
   drawBackground();
-  drawCharacter(hero, {
-    robe: "#315d8f",
-    trim: "#d6b45f",
-    arm: "#3c6fa7",
-    boots: "#2a211d",
-    skin: "#e5b687",
-    hair: "#ece5ce",
-    staff: "#6f5434",
-    orb: "#60ead0",
-    shadow: "rgba(0, 0, 0, 0.28)",
-  });
+  drawHero(hero);
   drawCharacter(enemy, {
     robe: enemy.hp > 0 ? "#7a312a" : "#3c3431",
     trim: "#e07842",

@@ -10,7 +10,8 @@ For the first simple demo, I only want to see one player character and one enemy
 
 ## Current Demo
 
-- One animated hero and one animated enemy.
+- One generated chibi warrior hero with a 6-frame walk cycle.
+- One animated enemy.
 - `A` / `D` moves the hero.
 - `Space` plays an attack animation and fires a projectile.
 - Projectiles have their own animated model.
