@@ -13,15 +13,16 @@ const world = {
   width: canvas.width,
   height: canvas.height,
   horizon: 372,
+  roadTop: 438,
   time: 0,
   autoRestartTimer: 0,
 };
 
 const lanes = [
-  { y: 486, scale: 0.72, speed: 0.76, xOffset: 34 },
-  { y: 548, scale: 0.86, speed: 0.88, xOffset: 6 },
-  { y: 612, scale: 1, speed: 1, xOffset: -18 },
-  { y: 662, scale: 1.12, speed: 1.08, xOffset: -42 },
+  { y: 466, scale: 0.72, speed: 0.76, scroll: 54 },
+  { y: 522, scale: 0.86, speed: 0.88, scroll: 70 },
+  { y: 580, scale: 1, speed: 1, scroll: 88 },
+  { y: 632, scale: 1.12, speed: 1.08, scroll: 104 },
 ];
 
 const squad = [
@@ -352,7 +353,7 @@ function drawBackground() {
   drawMountain(960, 448, 154, "#3d4d35");
 
   for (let i = 0; i < 24; i += 1) {
-    const x = (i * 72 - ((world.time * 9) % 72)) - 60;
+    const x = (i * 72 - ((world.time * 18) % 72)) - 60;
     drawPixelPine(x, 394 + (i % 5) * 9, 46 + (i % 4) * 9, 0.72);
   }
 
@@ -360,33 +361,49 @@ function drawBackground() {
 }
 
 function drawRoad() {
-  const road = ctx.createLinearGradient(0, world.horizon, 0, world.height);
-  road.addColorStop(0, "#5a5239");
-  road.addColorStop(0.56, "#756343");
-  road.addColorStop(1, "#43352a");
+  ctx.fillStyle = "#344a2e";
+  ctx.fillRect(0, world.roadTop - 42, world.width, world.height - world.roadTop + 42);
+
+  for (let x = -80; x < world.width + 120; x += 92) {
+    const drift = (world.time * 34) % 92;
+    drawPixelPine(x - drift, world.roadTop + 10 + Math.sin(x) * 5, 42 + (x % 3) * 8, 0.62);
+  }
+
+  const road = ctx.createLinearGradient(0, world.roadTop, 0, world.height);
+  road.addColorStop(0, "#756844");
+  road.addColorStop(0.52, "#8a744c");
+  road.addColorStop(1, "#4b392b");
   ctx.fillStyle = road;
   ctx.beginPath();
-  ctx.moveTo(486, world.horizon);
-  ctx.lineTo(782, world.horizon);
-  ctx.lineTo(1370, world.height);
-  ctx.lineTo(-108, world.height);
+  ctx.moveTo(0, world.roadTop);
+  ctx.lineTo(world.width, world.roadTop);
+  ctx.lineTo(world.width, world.height);
+  ctx.lineTo(0, world.height);
   ctx.closePath();
   ctx.fill();
 
-  ctx.fillStyle = "rgba(239, 222, 151, 0.16)";
-  for (const lane of lanes) {
-    ctx.beginPath();
-    ctx.ellipse(640 + lane.xOffset, lane.y + 10, 360 * lane.scale, 10 * lane.scale, 0, 0, Math.PI * 2);
-    ctx.fill();
+  ctx.fillStyle = "#5e4a36";
+  ctx.fillRect(0, world.roadTop - 7, world.width, 9);
+  ctx.fillStyle = "#a4945d";
+  ctx.fillRect(0, world.roadTop, world.width, 5);
+
+  for (let i = 0; i < lanes.length; i += 1) {
+    const lane = lanes[i];
+    const scroll = (world.time * lane.scroll) % 96;
+    ctx.fillStyle = `rgba(245, 222, 145, ${0.13 + i * 0.025})`;
+    ctx.fillRect(0, lane.y + 9, world.width, 3 + i);
+    for (let x = -96; x < world.width + 96; x += 96) {
+      rectPx(x - scroll, lane.y + 18, 46 * lane.scale, 5 * lane.scale);
+    }
   }
 
-  for (let i = 0; i < 42; i += 1) {
-    const depth = i / 41;
-    const y = world.horizon + depth * (world.height - world.horizon);
-    const halfWidth = 148 + depth * 600;
-    const x = 640 + Math.sin(i * 2.1) * 18;
-    ctx.fillStyle = `rgba(31, 24, 18, ${0.11 + depth * 0.09})`;
-    ctx.fillRect(x - halfWidth, y, halfWidth * 2, 2 + depth * 4);
+  for (let i = 0; i < 72; i += 1) {
+    const lane = lanes[i % lanes.length];
+    const scroll = (world.time * (lane.scroll + 12)) % 128;
+    const x = i * 61 - scroll - 80;
+    const y = lane.y + 34 + ((i * 17) % 34);
+    ctx.fillStyle = `rgba(38, 27, 20, ${0.1 + lane.scale * 0.05})`;
+    rectPx(x, y, 18 + (i % 4) * 7, 3 + (i % 3));
   }
 }
 

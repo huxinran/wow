@@ -104,14 +104,15 @@ canvas {
 
 .controls {
   position: absolute;
-  right: 16px;
-  bottom: 16px;
+  left: 16px;
+  bottom: 12px;
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 8px;
   max-width: calc(100% - 32px);
   pointer-events: none;
+  opacity: 0.82;
 }
 
 .controls span {
