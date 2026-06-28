@@ -50,6 +50,20 @@ Default projectile animation set:
 
 For early prototypes, a single sprite sheet may contain one state. For production-ready assets, request separate state sheets to keep frame timing and pivots predictable.
 
+## Current Main-Hero Runtime Convention
+
+The current demo uses one always-visible main hero instead of a full squad. The hero should have:
+
+- `run` or `walk`: 6 frames in one horizontal row, used continuously while the hero is on screen.
+- `attack`: 6 frames in one horizontal row, used only while `attackTimer` is active.
+
+Keep the same side-view direction, similar visual scale, and consistent foot baseline across the run/walk and attack sheets. The game code crops transparent padding at draw time, but prompts should still ask for centered frames, even cell sizes, and stable feet/baseline alignment so the hero does not pop or float when switching between run and attack.
+
+Current asset names:
+
+- `assets/characters/hero-warrior-walk-6f.png`
+- `assets/animations/hero-ember-archer-attack-6f-transparent.png`
+
 ## Prompt Rules
 
 Always ask ImageGen for:

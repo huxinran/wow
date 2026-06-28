@@ -5,6 +5,12 @@ const enemyHpBar = document.getElementById("enemyHp");
 
 ctx.imageSmoothingEnabled = false;
 
+const heroRunSprite = new Image();
+heroRunSprite.src = "./assets/characters/hero-warrior-walk-6f.png";
+
+const heroAttackSprite = new Image();
+heroAttackSprite.src = "./assets/animations/hero-ember-archer-attack-6f-transparent.png";
+
 const projectiles = [];
 const explosions = [];
 const floatText = [];
@@ -27,80 +33,20 @@ const lanes = [
 
 const squad = [
   {
-    id: "spark-mage",
-    name: "Spark Mage",
-    role: "mage",
-    lane: 0,
-    x: 276,
-    hp: 100,
-    maxHp: 100,
-    attackCooldown: 0.18,
-    attackRate: 1.22,
-    attackTimer: 0,
-    facing: 1,
-    colors: {
-      robe: "#2e77b8",
-      trim: "#f2c45b",
-      skin: "#f0b78c",
-      hair: "#f5ecd7",
-      weapon: "#775533",
-      magic: "#65f0dc",
-    },
-  },
-  {
-    id: "ember-archer",
-    name: "Ember Archer",
-    role: "archer",
-    lane: 1,
-    x: 224,
-    hp: 100,
-    maxHp: 100,
-    attackCooldown: 0.54,
-    attackRate: 1.42,
-    attackTimer: 0,
-    facing: 1,
-    colors: {
-      robe: "#617f38",
-      trim: "#e9a94b",
-      skin: "#d99a6d",
-      hair: "#37241d",
-      weapon: "#8a5a2e",
-      magic: "#ffb35c",
-    },
-  },
-  {
-    id: "moon-priest",
-    name: "Moon Priest",
-    role: "priest",
+    id: "main-hero",
+    name: "Main Hero",
+    role: "hero",
     lane: 2,
-    x: 318,
-    hp: 100,
-    maxHp: 100,
-    attackCooldown: 0.94,
-    attackRate: 1.64,
-    attackTimer: 0,
-    facing: 1,
-    colors: {
-      robe: "#d8d7cb",
-      trim: "#7fd7ff",
-      skin: "#efbd91",
-      hair: "#8a5638",
-      weapon: "#5d6581",
-      magic: "#c9f7ff",
-    },
-  },
-  {
-    id: "ruby-knight",
-    name: "Ruby Knight",
-    role: "knight",
-    lane: 3,
     x: 252,
     hp: 100,
     maxHp: 100,
-    attackCooldown: 1.18,
-    attackRate: 1.78,
+    attackCooldown: 0.36,
+    attackRate: 1.28,
     attackTimer: 0,
     facing: 1,
+    runSprite: heroRunSprite,
+    attackSprite: heroAttackSprite,
+    projectileType: "arrow",
     colors: {
       robe: "#a33b43",
       trim: "#f4d06a",
@@ -192,7 +138,7 @@ function findTarget(hero) {
 function shootProjectile(hero, target) {
   const heroScale = laneScale(hero);
   const targetScale = laneScale(target);
-  const isArrow = hero.role === "archer";
+  const isArrow = hero.role === "archer" || hero.projectileType === "arrow";
   const startX = hero.x + (isArrow ? 72 : 34) * heroScale;
   const startY = laneY(hero) - (isArrow ? 80 : 92) * heroScale;
   const endX = target.x - 16 * targetScale;
@@ -214,7 +160,7 @@ function shootProjectile(hero, target) {
     life: duration + 0.14,
     age: 0,
     radius: 9 + heroScale * 4,
-    damage: hero.role === "knight" ? 18 : 22,
+    damage: hero.role === "knight" || hero.role === "hero" ? 18 : 22,
     spin: 0,
     color: hero.colors.magic,
     lane: hero.lane,
@@ -444,6 +390,10 @@ function drawSceneObjects() {
 }
 
 function drawPixelHero(unit) {
+  if (drawHeroSprite(unit)) {
+    return;
+  }
+
   if (unit.role === "archer") {
     drawPixelArcher(unit);
     return;
@@ -517,6 +467,44 @@ function drawPixelHero(unit) {
   }
 
   ctx.restore();
+}
+
+function drawHeroSprite(unit) {
+  const isAttacking = unit.attackTimer > 0;
+  const sprite = isAttacking ? unit.attackSprite : unit.runSprite;
+  if (!sprite || !sprite.complete || sprite.naturalWidth <= 0) return false;
+
+  const scale = laneScale(unit);
+  const frameCount = 6;
+  const frameWidth = sprite.naturalWidth / frameCount;
+  const frameHeight = sprite.naturalHeight;
+  const attackProgress = 1 - unit.attackTimer / 0.34;
+  const sourceFrame = isAttacking
+    ? Math.min(frameCount - 1, Math.max(0, Math.floor(attackProgress * frameCount)))
+    : Math.floor(world.time * 9 + unit.lane * 1.7) % frameCount;
+  const crop = isAttacking
+    ? { y: 195, height: 320, drawX: -74, drawWidth: 186, drawHeight: 164 }
+    : { y: 150, height: 420, drawX: -84, drawWidth: 178, drawHeight: 178 };
+  const bob = Math.sin(world.time * 5 + unit.lane) * 2 * scale;
+
+  ctx.save();
+  ctx.translate(unit.x, laneY(unit) + bob);
+  ctx.scale(unit.facing * scale, scale);
+  drawShadow(0, 7, 42, 10);
+  ctx.drawImage(
+    sprite,
+    sourceFrame * frameWidth,
+    crop.y,
+    frameWidth,
+    Math.min(crop.height, frameHeight - crop.y),
+    crop.drawX,
+    -crop.drawHeight,
+    crop.drawWidth,
+    crop.drawHeight,
+  );
+  drawHealthBar(-10, -166, 66, 7, unit.hp / unit.maxHp);
+  ctx.restore();
+  return true;
 }
 
 function drawPixelArcher(unit) {
