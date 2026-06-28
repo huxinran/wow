@@ -1,0 +1,4 @@
+interface:
+  display_name: "WoW Cute Fantasy Assets"
+  short_description: "Generate consistent cute fantasy game asset prompts."
+  default_prompt: "Create ImageGen prompts for cute animated fantasy side-scroller assets."

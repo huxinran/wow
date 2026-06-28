@@ -18,3 +18,9 @@ For the first simple demo, I only want to see one player character and one enemy
 - `R` resets the encounter.
 
 Open `index.html` in a browser to run the demo.
+
+## Art Direction and ImageGen
+
+The project art direction is documented in `docs/art-direction.md`.
+
+Reusable ImageGen prompt rules for cute animated fantasy assets live in `tools/wow-cute-fantasy-assets/SKILL.md`, with prompt templates in `tools/wow-cute-fantasy-assets/references/prompt-cookbook.md`.
