@@ -34,8 +34,10 @@ const SEARCH_BATCH_LIMIT = 14;
 const BACKLINK_SEARCH_LIMIT = 500;
 const FEATURED_MIN_DISTANCE = 3;
 const FEATURED_MAX_DISTANCE = 3;
-const FEATURED_BFS_PAGE_LIMIT = 36;
-const FEATURED_BFS_BRANCH_LIMIT = 8;
+const FEATURED_BFS_PAGE_LIMIT = 60;
+const FEATURED_BFS_BRANCH_LIMIT = 12;
+const FEATURED_SEARCH_ATTEMPTS = 4;
+const FEATURED_SOURCE_PAGE = "Wikipedia:典范条目";
 const CACHE = new Map();
 
 const game = {
@@ -50,15 +52,6 @@ const game = {
   isPlaying: false,
   requestId: 0,
 };
-
-function todayParts() {
-  const today = new Date();
-  return {
-    year: today.getFullYear(),
-    month: String(today.getMonth() + 1).padStart(2, "0"),
-    day: String(today.getDate()).padStart(2, "0"),
-  };
-}
 
 function titleKey(title) {
   return title.replace(/_/g, " ").trim().toLowerCase();
@@ -76,7 +69,6 @@ async function wikiGet(params) {
     formatversion: "2",
     uselang: WIKI_VARIANT,
     variant: WIKI_VARIANT,
-    converttitles: "1",
     ...params,
   });
 
@@ -88,19 +80,31 @@ async function wikiGet(params) {
 }
 
 async function getTodaysFeaturedArticle() {
-  const { year, month, day } = todayParts();
-  const url = `https://${WIKI_HOST}/api/rest_v1/feed/featured/${year}/${month}/${day}`;
-  const response = await fetch(url);
+  const key = `featured-source:${new Date().toDateString()}`;
+  if (CACHE.has(key)) return CACHE.get(key);
 
-  if (!response.ok) {
-    throw new Error("Could not load today's featured Chinese Wikipedia article.");
+  const data = await wikiGet({
+    action: "parse",
+    page: FEATURED_SOURCE_PAGE,
+    prop: "text",
+    redirects: "1",
+  });
+
+  if (data.error) {
+    throw new Error("Could not load today's Chinese Wikipedia featured article list.");
   }
 
-  const data = await response.json();
-  const title = data.tfa?.titles?.normalized || data.tfa?.title;
-  if (!title) {
-    throw new Error("Today's featured Chinese Wikipedia article was not available.");
+  const template = document.createElement("template");
+  template.innerHTML = data.parse.text;
+  const link = template.content.querySelector("#column-feature b a[href^='/wiki/']");
+  const href = link?.getAttribute("href");
+
+  if (!href) {
+    throw new Error("Today's featured article was not found on the Chinese Wikipedia 典范条目 page.");
   }
+
+  const title = decodeURIComponent(href.slice("/wiki/".length)).replaceAll("_", " ");
+  CACHE.set(key, title);
   return title;
 }
 
@@ -448,6 +452,19 @@ function pickBfsLinks(links) {
 }
 
 async function findFeaturedTargetPath(source) {
+  let lastError = null;
+  for (let attempt = 0; attempt < FEATURED_SEARCH_ATTEMPTS; attempt += 1) {
+    try {
+      return await findFeaturedTargetPathOnce(source);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error("Could not find a 3-step featured challenge from today's article. Try again.");
+}
+
+async function findFeaturedTargetPathOnce(source) {
   const sourceSummary = await getPageSummary(source);
   const sourceCanonical = sourceSummary.title;
   const visited = new Set([titleKey(sourceCanonical)]);
@@ -495,14 +512,7 @@ async function findFeaturedTargetPath(source) {
 
     if (candidates.length > 0) {
       const shuffledCandidates = shuffleRandom(candidates);
-      for (const path of shuffledCandidates.slice(0, 30)) {
-        try {
-          await getPageSummary(path[path.length - 1]);
-          return path;
-        } catch {
-          continue;
-        }
-      }
+      return shuffledCandidates[0];
     }
 
     if (nextFrontier.length === 0 || pagesScanned >= FEATURED_BFS_PAGE_LIMIT) break;
@@ -752,15 +762,16 @@ async function startFeaturedChallenge() {
   setLoading(true, "Searching...");
   statusLabel.textContent = "Featured article";
   distanceLabel.textContent = "...";
-  hintLabel.textContent = "Loading today's Chinese Wikipedia featured article, then running BFS for a 3-step target.";
+  hintLabel.textContent = "Loading today's Chinese Wikipedia 典范条目, then running BFS for a 3-step target.";
   linkWindow.innerHTML = `<p class="empty-state">Building today's featured challenge...</p>`;
 
   try {
     const featuredTitle = await getTodaysFeaturedArticle();
+    const featuredDisplayTitle = await getPageDisplayTitle(featuredTitle);
     statusLabel.textContent = "BFS running";
-    sourceTitle.textContent = featuredTitle;
+    sourceTitle.textContent = featuredDisplayTitle;
     if (sourceInput) sourceInput.value = featuredTitle;
-    hintLabel.textContent = `Starting from ${featuredTitle}. Searching outward for a Chinese Wikipedia page 3 clicks away.`;
+    hintLabel.textContent = `Starting from ${featuredDisplayTitle}. Searching outward for a Chinese Wikipedia page 3 clicks away.`;
 
     const path = await findFeaturedTargetPath(featuredTitle);
     await startWithKnownPath(path, "Featured challenge");
