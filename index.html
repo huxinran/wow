@@ -10,10 +10,6 @@
     <main class="app-shell">
       <section class="challenge-board" aria-label="Wiki path challenge">
         <header class="topbar">
-          <div>
-            <p class="eyebrow">Shortest-link puzzle</p>
-            <h1>Wiki Path Challenge</h1>
-          </div>
           <form class="challenge-form" id="challengeForm">
             <label>
               <span>Source</span>
@@ -55,7 +51,10 @@
           <aside class="path-panel" aria-label="Current path">
             <div class="panel-heading">
               <span>Current path</span>
-              <button type="button" id="resetRunButton" disabled>Reset Run</button>
+              <div class="path-actions">
+                <button type="button" id="solutionButton" disabled>Show Solution</button>
+                <button type="button" id="resetRunButton" disabled>Reset Run</button>
+              </div>
             </div>
             <ol id="pathList" class="path-list"></ol>
           </aside>

@@ -4,6 +4,7 @@ const targetInput = document.getElementById("targetInput");
 const startButton = document.getElementById("startButton");
 const featuredButton = document.getElementById("featuredButton");
 const resetRunButton = document.getElementById("resetRunButton");
+const solutionButton = document.getElementById("solutionButton");
 const readTargetButton = document.getElementById("readTargetButton");
 const sourceTitle = document.getElementById("sourceTitle");
 const targetTitle = document.getElementById("targetTitle");
@@ -476,6 +477,7 @@ async function findShortestPath(source, target) {
 function setLoading(isLoading, label = "Searching...") {
   startButton.disabled = isLoading;
   featuredButton.disabled = isLoading;
+  solutionButton.disabled = isLoading || game.shortestPath.length === 0;
   startButton.textContent = isLoading ? label : "Find Path";
   featuredButton.textContent = isLoading ? "Building..." : "Featured Challenge";
   sourceInput.disabled = isLoading;
@@ -557,9 +559,19 @@ function allowedMoveLabel() {
   return `${moveLabel(game.shortestDistance)} path, ${moveLabel(game.moveLimit)} allowed`;
 }
 
+function clearChallengeActions() {
+  game.shortestPath = [];
+  game.shortestDistance = null;
+  game.moveLimit = null;
+  resetRunButton.disabled = true;
+  solutionButton.disabled = true;
+  readTargetButton.disabled = true;
+}
+
 async function startChallenge(event) {
   event?.preventDefault();
   hideResult();
+  clearChallengeActions();
   setLoading(true);
   statusLabel.textContent = "Searching";
   distanceLabel.textContent = "...";
@@ -590,6 +602,7 @@ async function startChallenge(event) {
     distanceLabel.textContent = allowedMoveLabel();
     hintLabel.textContent = `Reach the goal in ${moveLabel(game.moveLimit)} or fewer.`;
     resetRunButton.disabled = false;
+    solutionButton.disabled = false;
     readTargetButton.disabled = false;
     renderPath();
     await loadCurrentPage(sourceSummary.title);
@@ -600,6 +613,7 @@ async function startChallenge(event) {
     hintLabel.textContent = error.message;
     linkWindow.innerHTML = `<p class="empty-state">${error.message}</p>`;
     resetRunButton.disabled = true;
+    solutionButton.disabled = true;
     readTargetButton.disabled = true;
   } finally {
     setLoading(false);
@@ -629,6 +643,7 @@ async function startWithKnownPath(path, statusText) {
   distanceLabel.textContent = allowedMoveLabel();
   hintLabel.textContent = `Start at today's featured article and reach the goal in ${moveLabel(game.moveLimit)} or fewer.`;
   resetRunButton.disabled = false;
+  solutionButton.disabled = false;
   readTargetButton.disabled = false;
   renderPath();
   await loadCurrentPage(sourceSummary.title);
@@ -636,10 +651,11 @@ async function startWithKnownPath(path, statusText) {
 
 async function startFeaturedChallenge() {
   hideResult();
+  clearChallengeActions();
   setLoading(true, "Searching...");
   statusLabel.textContent = "Featured article";
   distanceLabel.textContent = "...";
-    hintLabel.textContent = "Loading today's featured article, then running BFS for a 3-step target.";
+  hintLabel.textContent = "Loading today's featured article, then running BFS for a 3-step target.";
   linkWindow.innerHTML = `<p class="empty-state">Building today's featured challenge...</p>`;
 
   try {
@@ -658,6 +674,7 @@ async function startFeaturedChallenge() {
     hintLabel.textContent = error.message;
     linkWindow.innerHTML = `<p class="empty-state">${error.message}</p>`;
     resetRunButton.disabled = true;
+    solutionButton.disabled = true;
     readTargetButton.disabled = true;
   } finally {
     setLoading(false);
@@ -711,6 +728,29 @@ async function readTargetPage() {
   }
 }
 
+function showSolution() {
+  if (!game.shortestPath.length) return;
+
+  hideResult();
+  resultModal.classList.remove("hidden");
+  resultKicker.textContent = "Solution";
+  resultTitle.textContent = `${moveLabel(game.shortestDistance)} path`;
+  resultText.innerHTML = `
+    <ol class="solution-list">
+      ${game.shortestPath
+        .map(
+          (title, index) => `
+            <li>
+              <span>${index}</span>
+              <a href="${wikiUrl(title)}" target="_blank" rel="noreferrer">${title}</a>
+            </li>
+          `,
+        )
+        .join("")}
+    </ol>
+  `;
+}
+
 function resetRun() {
   if (!game.source) return;
   hideResult();
@@ -724,6 +764,7 @@ function resetRun() {
 challengeForm.addEventListener("submit", startChallenge);
 featuredButton.addEventListener("click", startFeaturedChallenge);
 resetRunButton.addEventListener("click", resetRun);
+solutionButton.addEventListener("click", showSolution);
 readTargetButton.addEventListener("click", readTargetPage);
 
 linkWindow.addEventListener("click", (event) => {
