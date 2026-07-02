@@ -1,10 +1,10 @@
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
-  background: #151712;
-  color: #f3f0e8;
+  background: #f6f3ec;
+  color: #20231f;
 }
 
 * {
@@ -13,146 +13,536 @@
 
 html,
 body {
-  width: 100%;
   min-height: 100%;
   margin: 0;
 }
 
 body {
-  display: grid;
-  place-items: center;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 20% 10%, rgba(111, 151, 91, 0.18), transparent 32rem),
-    linear-gradient(135deg, #151712 0%, #222116 54%, #111a1e 100%);
-  overflow: hidden;
+    linear-gradient(rgba(246, 243, 236, 0.9), rgba(246, 243, 236, 0.92)),
+    url("https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Wikipedia-logo-v2.svg/640px-Wikipedia-logo-v2.svg.png")
+      center 8vh / min(48vw, 460px) no-repeat,
+    linear-gradient(135deg, #f6f3ec 0%, #e5edf0 52%, #f3eadf 100%);
 }
 
-.game-shell {
-  width: min(100vw, 1280px);
-  padding: clamp(12px, 2vw, 28px);
+button,
+input {
+  font: inherit;
 }
 
-.stage-panel {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  border: 1px solid rgba(239, 226, 186, 0.3);
+button {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.app-shell {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: clamp(14px, 2.4vw, 30px);
+}
+
+.challenge-board {
+  min-height: calc(100vh - clamp(28px, 4.8vw, 60px));
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 14px;
+}
+
+.topbar,
+.summary-band,
+.path-panel,
+.wiki-window {
+  border: 1px solid rgba(49, 63, 66, 0.16);
   border-radius: 8px;
-  background: #10130f;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.46);
+  background: rgba(255, 253, 248, 0.9);
+  box-shadow: 0 18px 44px rgba(57, 52, 44, 0.12);
+  backdrop-filter: blur(12px);
 }
 
-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
+.topbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.72fr) minmax(320px, 1.28fr);
+  gap: 18px;
+  align-items: end;
+  padding: 18px;
 }
 
-.hud {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  right: 16px;
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  pointer-events: none;
-}
-
-.hud-card {
-  width: min(34vw, 300px);
-  min-width: 156px;
-  padding: 10px;
-  border: 1px solid rgba(255, 246, 205, 0.22);
-  border-radius: 6px;
-  background: rgba(18, 20, 17, 0.72);
-  backdrop-filter: blur(8px);
-}
-
-.hud-label {
-  display: block;
-  margin-bottom: 6px;
+.eyebrow,
+.page-card span,
+.distance-card span,
+.panel-heading span,
+.page-header span,
+label span,
+#resultKicker {
+  margin: 0;
+  color: #66706d;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0;
   text-transform: uppercase;
-  color: #f4deb0;
 }
 
-.bar {
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  margin-top: 4px;
+  font-size: clamp(30px, 5vw, 58px);
+  line-height: 0.95;
+  color: #171b1a;
+}
+
+.challenge-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto auto;
+  gap: 10px;
+  align-items: end;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+}
+
+input {
   width: 100%;
-  height: 12px;
-  overflow: hidden;
-  border-radius: 99px;
-  background: rgba(0, 0, 0, 0.42);
-}
-
-.bar span {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #78d46f, #e4d563);
-  transition: width 160ms ease;
-}
-
-.bar.enemy span {
-  background: linear-gradient(90deg, #dc5b51, #f09a45);
-}
-
-.controls {
-  position: absolute;
-  left: 16px;
-  bottom: 12px;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: 8px;
-  max-width: calc(100% - 32px);
-  pointer-events: none;
-  opacity: 0.82;
-}
-
-.controls span {
-  display: inline-flex;
-  align-items: center;
-  height: 30px;
-  padding: 0 10px;
-  border: 1px solid rgba(255, 246, 205, 0.2);
+  min-height: 44px;
+  border: 1px solid #c9d2d0;
   border-radius: 6px;
-  background: rgba(18, 20, 17, 0.7);
-  color: #fff6d8;
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
+  padding: 0 12px;
+  background: #ffffff;
+  color: #20231f;
+  outline: none;
 }
 
-@media (max-width: 700px) {
+input:focus {
+  border-color: #2e7a80;
+  box-shadow: 0 0 0 3px rgba(46, 122, 128, 0.16);
+}
+
+.challenge-form button,
+.panel-heading button,
+.result-actions button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0 16px;
+  background: #1f646a;
+  color: #ffffff;
+  font-weight: 850;
+}
+
+.challenge-form button + button {
+  border: 1px solid #c9d2d0;
+  background: #ffffff;
+  color: #27302f;
+}
+
+.panel-heading button,
+.result-actions button + button {
+  border: 1px solid #c9d2d0;
+  background: #ffffff;
+  color: #27302f;
+}
+
+.summary-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(190px, 0.54fr) minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px;
+}
+
+.page-card {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+}
+
+.page-card img {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: linear-gradient(135deg, #d9e5e7, #efe0cb);
+}
+
+.page-card img.empty {
+  display: block;
+}
+
+.page-card strong,
+.distance-card strong {
+  display: block;
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+  color: #1d2322;
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.page-card button {
+  min-height: 34px;
+  margin-top: 8px;
+  border: 1px solid #c9d2d0;
+  border-radius: 6px;
+  padding: 0 10px;
+  background: #ffffff;
+  color: #1f646a;
+  font-weight: 850;
+}
+
+.distance-card {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  min-height: 92px;
+  border-inline: 1px solid rgba(49, 63, 66, 0.12);
+  text-align: center;
+}
+
+.distance-card strong {
+  color: #a4472d;
+  font-size: clamp(24px, 3vw, 38px);
+}
+
+.distance-card small {
+  max-width: 260px;
+  color: #5d6462;
+  line-height: 1.35;
+}
+
+.play-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(230px, 0.34fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.path-panel,
+.wiki-window {
+  min-height: 0;
+  padding: 14px;
+}
+
+.panel-heading,
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.path-list {
+  display: grid;
+  gap: 8px;
+  max-height: calc(100vh - 330px);
+  margin: 14px 0 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.path-list li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 9px;
+  border: 1px solid rgba(49, 63, 66, 0.12);
+  border-radius: 6px;
+  background: #fbfaf6;
+}
+
+.path-list li span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e1ecee;
+  color: #25565b;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.path-list li strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+
+.wiki-window {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 14px;
+}
+
+.page-header h2 {
+  margin-top: 4px;
+  overflow-wrap: anywhere;
+  font-size: clamp(24px, 3vw, 38px);
+  line-height: 1.05;
+}
+
+.page-header a {
+  flex: 0 0 auto;
+  color: #1f646a;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.extract {
+  max-width: 78ch;
+  color: #404947;
+  line-height: 1.55;
+}
+
+.wiki-article {
+  min-height: 240px;
+  overflow: auto;
+  padding: 14px;
+  border: 1px solid rgba(49, 63, 66, 0.12);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #20231f;
+  line-height: 1.55;
+}
+
+.wiki-article a {
+  color: #1f646a;
+  font-weight: 650;
+}
+
+.wiki-article a:hover {
+  color: #a4472d;
+}
+
+.wiki-article p {
+  margin: 0 0 0.9em;
+}
+
+.wiki-article h2,
+.wiki-article h3,
+.wiki-article h4 {
+  margin: 1.1em 0 0.45em;
+  line-height: 1.15;
+}
+
+.wiki-article h2 {
+  padding-bottom: 0.2em;
+  border-bottom: 1px solid #d8dfdd;
+  font-size: 24px;
+}
+
+.wiki-article h3 {
+  font-size: 19px;
+}
+
+.wiki-article img {
+  max-width: 100%;
+  height: auto;
+}
+
+.wiki-article table,
+.wiki-article .infobox,
+.wiki-article .wikitable,
+.wiki-article .thumb,
+.wiki-article figure {
+  max-width: 100%;
+}
+
+.wiki-article .infobox,
+.wiki-article .thumb,
+.wiki-article figure {
+  float: right;
+  clear: right;
+  width: min(300px, 42%);
+  margin: 0 0 14px 18px;
+  font-size: 13px;
+}
+
+.wiki-article table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.wiki-article th,
+.wiki-article td {
+  padding: 5px 7px;
+  border: 1px solid #d8dfdd;
+  vertical-align: top;
+}
+
+.wiki-article ul,
+.wiki-article ol {
+  padding-left: 1.3em;
+}
+
+.wiki-article .hatnote,
+.wiki-article .shortdescription,
+.wiki-article .ambox,
+.wiki-article .navbox,
+.wiki-article .metadata {
+  color: #66706d;
+  font-size: 13px;
+}
+
+.wiki-article .mw-parser-output {
+  overflow-wrap: anywhere;
+}
+
+.empty-state {
+  align-self: start;
+  padding: 18px;
+  border: 1px dashed #bcc7c4;
+  border-radius: 8px;
+  color: #5d6462;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.result-modal {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(28, 30, 28, 0.36);
+  backdrop-filter: blur(6px);
+}
+
+.result-modal.hidden {
+  display: none;
+}
+
+.result-panel {
+  width: min(780px, 100%);
+  max-height: min(82vh, 760px);
+  overflow: auto;
+  padding: 22px;
+  border: 1px solid rgba(49, 63, 66, 0.16);
+  border-radius: 8px;
+  background: #fffdf8;
+  box-shadow: 0 24px 70px rgba(35, 31, 24, 0.28);
+}
+
+.result-panel h2 {
+  margin-top: 6px;
+  font-size: 34px;
+}
+
+#resultText {
+  margin-top: 8px;
+  color: #48514f;
+  line-height: 1.5;
+}
+
+.result-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.target-reader {
+  max-height: 52vh;
+  overflow: auto;
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid rgba(49, 63, 66, 0.12);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #20231f;
+}
+
+.target-reader p {
+  margin: 0 0 0.9em;
+}
+
+.target-reader h2,
+.target-reader h3,
+.target-reader h4 {
+  margin: 1.1em 0 0.45em;
+  line-height: 1.15;
+}
+
+.target-reader img {
+  max-width: 100%;
+  height: auto;
+}
+
+.target-reader table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 860px) {
   body {
-    overflow: auto;
+    background-size: 360px, auto;
   }
 
-  .game-shell {
-    min-width: 360px;
+  .topbar,
+  .challenge-form,
+  .summary-band,
+  .play-grid {
+    grid-template-columns: 1fr;
   }
 
-  .hud {
-    top: 10px;
-    left: 10px;
-    right: 10px;
+  .distance-card {
+    border-block: 1px solid rgba(49, 63, 66, 0.12);
+    border-inline: 0;
+    padding-block: 12px;
   }
 
-  .hud-card {
-    min-width: 130px;
-    padding: 8px;
+  .path-list {
+    max-height: 220px;
+  }
+}
+
+@media (max-width: 560px) {
+  .app-shell {
+    padding: 10px;
   }
 
-  .controls {
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
-    justify-content: center;
+  .topbar,
+  .summary-band,
+  .path-panel,
+  .wiki-window {
+    padding: 12px;
+  }
+
+  .page-card {
+    grid-template-columns: 58px minmax(0, 1fr);
+  }
+
+  .page-card img {
+    width: 58px;
+    height: 58px;
+  }
+
+  .panel-heading,
+  .page-header,
+  .result-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .wiki-article .infobox,
+  .wiki-article .thumb,
+  .wiki-article figure {
+    float: none;
+    width: 100%;
+    margin: 0 0 14px;
   }
 }

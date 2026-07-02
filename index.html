@@ -3,30 +3,94 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WoW Side-Scroller Demo</title>
+    <title>Wiki Path Challenge</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <main class="game-shell">
-      <section class="stage-panel" aria-label="WoW-inspired battle demo">
-        <canvas id="game" width="1280" height="720"></canvas>
-        <div class="hud" aria-hidden="true">
-          <div class="hud-card">
-            <span class="hud-label">Squad</span>
-            <div class="bar"><span id="heroHp"></span></div>
+    <main class="app-shell">
+      <section class="challenge-board" aria-label="Wiki path challenge">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Shortest-link puzzle</p>
+            <h1>Wiki Path Challenge</h1>
           </div>
-          <div class="hud-card">
-            <span class="hud-label">Grunts</span>
-            <div class="bar enemy"><span id="enemyHp"></span></div>
+          <form class="challenge-form" id="challengeForm">
+            <label>
+              <span>Source</span>
+              <input id="sourceInput" name="source" value="Ada Lovelace" autocomplete="off" />
+            </label>
+            <label>
+              <span>Destination</span>
+              <input id="targetInput" name="target" value="Charles Babbage" autocomplete="off" />
+            </label>
+            <button type="submit" id="startButton">Find Path</button>
+            <button type="button" id="featuredButton">Featured Challenge</button>
+          </form>
+        </header>
+
+        <section class="summary-band" aria-live="polite">
+          <article class="page-card source-card">
+            <img id="sourceImage" alt="" />
+            <div>
+              <span>Start</span>
+              <strong id="sourceTitle">Ada Lovelace</strong>
+            </div>
+          </article>
+          <div class="distance-card">
+            <span id="statusLabel">Ready</span>
+            <strong id="distanceLabel">-</strong>
+            <small id="hintLabel">Enter two Wikipedia pages to generate a challenge.</small>
           </div>
-        </div>
-        <div class="controls" aria-label="Controls">
-          <span>Auto Battle</span>
-          <span>Depth Lanes</span>
-          <span>R Reset</span>
-        </div>
+          <article class="page-card target-card">
+            <img id="targetImage" alt="" />
+            <div>
+              <span>Goal</span>
+              <strong id="targetTitle">Charles Babbage</strong>
+              <button type="button" id="readTargetButton" disabled>Read Goal</button>
+            </div>
+          </article>
+        </section>
+
+        <section class="play-grid">
+          <aside class="path-panel" aria-label="Current path">
+            <div class="panel-heading">
+              <span>Current path</span>
+              <button type="button" id="resetRunButton" disabled>Reset Run</button>
+            </div>
+            <ol id="pathList" class="path-list"></ol>
+          </aside>
+
+          <section class="wiki-window" aria-label="Current Wikipedia page">
+            <div class="page-header">
+              <div>
+                <span id="moveCounter">0 moves</span>
+                <h2 id="currentTitle">Choose a challenge</h2>
+              </div>
+              <a id="wikiLink" href="https://en.wikipedia.org/wiki/Ada_Lovelace" target="_blank" rel="noreferrer">
+                Open Wikipedia
+              </a>
+            </div>
+            <p id="extractText" class="extract">
+              Once the challenge is ready, this window shows the current Wikipedia article.
+            </p>
+            <div id="linkWindow" class="wiki-article" aria-live="polite"></div>
+          </section>
+        </section>
       </section>
     </main>
+
+    <div class="result-modal hidden" id="resultModal" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+      <div class="result-panel">
+        <span id="resultKicker">Result</span>
+        <h2 id="resultTitle">Great</h2>
+        <div id="resultText"></div>
+        <div class="result-actions">
+          <button type="button" id="playAgainButton">Play Again</button>
+          <button type="button" id="closeResultButton">Close</button>
+        </div>
+      </div>
+    </div>
+
     <script src="./src/game.js"></script>
   </body>
 </html>
