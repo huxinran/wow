@@ -26,7 +26,9 @@ const resultText = document.getElementById("resultText");
 const playAgainButton = document.getElementById("playAgainButton");
 const closeResultButton = document.getElementById("closeResultButton");
 
-const API = "https://en.wikipedia.org/w/api.php";
+const WIKI_HOST = "zh.wikipedia.org";
+const WIKI_VARIANT = "zh-hans";
+const API = `https://${WIKI_HOST}/w/api.php`;
 const MAX_DEPTH = 4;
 const SEARCH_BATCH_LIMIT = 14;
 const BACKLINK_SEARCH_LIMIT = 500;
@@ -63,7 +65,7 @@ function titleKey(title) {
 }
 
 function wikiUrl(title) {
-  return `https://en.wikipedia.org/wiki/${encodeURIComponent(title.replaceAll(" ", "_"))}`;
+  return `https://${WIKI_HOST}/wiki/${encodeURIComponent(title.replaceAll(" ", "_"))}?variant=${WIKI_VARIANT}`;
 }
 
 async function wikiGet(params) {
@@ -72,29 +74,32 @@ async function wikiGet(params) {
     origin: "*",
     format: "json",
     formatversion: "2",
+    uselang: WIKI_VARIANT,
+    variant: WIKI_VARIANT,
+    converttitles: "1",
     ...params,
   });
 
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error(`Wikipedia request failed with ${response.status}`);
+    throw new Error(`Chinese Wikipedia request failed with ${response.status}`);
   }
   return response.json();
 }
 
 async function getTodaysFeaturedArticle() {
   const { year, month, day } = todayParts();
-  const url = `https://en.wikipedia.org/api/rest_v1/feed/featured/${year}/${month}/${day}`;
+  const url = `https://${WIKI_HOST}/api/rest_v1/feed/featured/${year}/${month}/${day}`;
   const response = await fetch(url);
 
   if (!response.ok) {
-    throw new Error("Could not load today's featured Wikipedia article.");
+    throw new Error("Could not load today's featured Chinese Wikipedia article.");
   }
 
   const data = await response.json();
   const title = data.tfa?.titles?.normalized || data.tfa?.title;
   if (!title) {
-    throw new Error("Today's featured article was not available from Wikipedia.");
+    throw new Error("Today's featured Chinese Wikipedia article was not available.");
   }
   return title;
 }
@@ -117,16 +122,40 @@ async function getPageSummary(title) {
 
   const page = data.query.pages[0];
   if (page.missing) {
-    throw new Error(`No Wikipedia page found for "${title}".`);
+    throw new Error(`No Chinese Wikipedia page found for "${title}".`);
   }
 
+  const displayTitle = await getPageDisplayTitle(page.title);
   const summary = {
-    title: page.title,
+    title: displayTitle,
+    canonicalTitle: page.title,
     extract: page.extract || "No page summary is available, but its links can still be explored.",
     thumbnail: page.thumbnail?.source || "",
   };
   CACHE.set(key, summary);
   return summary;
+}
+
+async function getPageDisplayTitle(title) {
+  const key = `display-title:${titleKey(title)}`;
+  if (CACHE.has(key)) return CACHE.get(key);
+
+  const data = await wikiGet({
+    action: "parse",
+    page: title,
+    prop: "displaytitle",
+    redirects: "1",
+  });
+
+  if (data.error) {
+    return title;
+  }
+
+  const template = document.createElement("template");
+  template.innerHTML = data.parse.displaytitle || data.parse.title || title;
+  const displayTitle = template.content.textContent.trim() || data.parse.title || title;
+  CACHE.set(key, displayTitle);
+  return displayTitle;
 }
 
 async function getPageHtml(title) {
@@ -188,10 +217,11 @@ async function getPageHtml(title) {
     if (href.startsWith("//")) link.href = `https:${href}`;
     if (href.startsWith("/wiki/")) {
       const wikiTitle = decodeURIComponent(href.slice("/wiki/".length)).replaceAll("_", " ");
-      link.href = `https://en.wikipedia.org${href}`;
       if (isGoodChallengeLink(wikiTitle)) {
+        link.href = wikiUrl(wikiTitle);
         link.dataset.wikiTitle = wikiTitle;
       } else {
+        link.href = wikiUrl(wikiTitle);
         link.target = "_blank";
         link.rel = "noreferrer";
       }
@@ -243,6 +273,26 @@ function removeBackMatterSections(root) {
     "notes",
     "references",
     "see also",
+    "参考",
+    "参考文献",
+    "参考来源",
+    "参考资料",
+    "參考",
+    "參考文獻",
+    "參考來源",
+    "參考資料",
+    "参见",
+    "參見",
+    "外部链接",
+    "外部連結",
+    "延伸阅读",
+    "延伸閱讀",
+    "相关条目",
+    "相關條目",
+    "注释",
+    "註釋",
+    "脚注",
+    "腳註",
   ]);
 
   for (const heading of [...root.querySelectorAll("h2")]) {
@@ -299,7 +349,7 @@ async function getPageLinks(title) {
 
     const page = data.query.pages[0];
     if (page.missing) {
-      throw new Error(`No Wikipedia page found for "${title}".`);
+      throw new Error(`No Chinese Wikipedia page found for "${title}".`);
     }
 
     links = links.concat((page.links || []).map((link) => link.title));
@@ -377,11 +427,18 @@ function isGoodChallengeLink(title) {
     title.length >= 4 &&
     title.length <= 72 &&
     !title.includes(":") &&
+    !title.includes("：") &&
     !title.includes("(disambiguation)") &&
+    !title.includes("(消歧义)") &&
+    !title.includes("（消歧义）") &&
     !title.startsWith("List of ") &&
     !title.startsWith("Index of ") &&
     !title.startsWith("Outline of ") &&
-    !title.startsWith("Portal:")
+    !title.startsWith("Portal:") &&
+    !title.startsWith("列表") &&
+    !title.startsWith("索引") &&
+    !title.startsWith("大纲") &&
+    !title.startsWith("大綱")
   );
 }
 
@@ -615,7 +672,7 @@ async function startChallenge(event) {
   setLoading(true);
   statusLabel.textContent = "Searching";
   distanceLabel.textContent = "...";
-  hintLabel.textContent = "Finding the shortest route through Wikipedia links.";
+  hintLabel.textContent = "Finding the shortest route through Chinese Wikipedia links.";
   linkWindow.innerHTML = `<p class="empty-state">Computing shortest path...</p>`;
 
   try {
@@ -695,7 +752,7 @@ async function startFeaturedChallenge() {
   setLoading(true, "Searching...");
   statusLabel.textContent = "Featured article";
   distanceLabel.textContent = "...";
-  hintLabel.textContent = "Loading today's featured article, then running BFS for a 3-step target.";
+  hintLabel.textContent = "Loading today's Chinese Wikipedia featured article, then running BFS for a 3-step target.";
   linkWindow.innerHTML = `<p class="empty-state">Building today's featured challenge...</p>`;
 
   try {
@@ -703,7 +760,7 @@ async function startFeaturedChallenge() {
     statusLabel.textContent = "BFS running";
     sourceTitle.textContent = featuredTitle;
     if (sourceInput) sourceInput.value = featuredTitle;
-    hintLabel.textContent = `Starting from ${featuredTitle}. Searching outward for a page 3 clicks away.`;
+    hintLabel.textContent = `Starting from ${featuredTitle}. Searching outward for a Chinese Wikipedia page 3 clicks away.`;
 
     const path = await findFeaturedTargetPath(featuredTitle);
     await startWithKnownPath(path, "Featured challenge");

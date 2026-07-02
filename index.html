@@ -8,25 +8,25 @@
   </head>
   <body>
     <main class="app-shell">
-      <section class="challenge-board" aria-label="Wiki path challenge">
+      <section class="challenge-board" aria-label="Chinese Wiki path challenge">
         <section class="summary-band" aria-live="polite">
           <article class="page-card source-card">
             <img id="sourceImage" alt="" />
             <div>
               <span>Start</span>
-              <strong id="sourceTitle">Ada Lovelace</strong>
+              <strong id="sourceTitle">珠江隧道</strong>
             </div>
           </article>
           <div class="distance-card">
             <span id="statusLabel">Ready</span>
             <strong id="distanceLabel">-</strong>
-            <small id="hintLabel">Enter two Wikipedia pages to generate a challenge.</small>
+            <small id="hintLabel">Loading a Chinese Wikipedia featured challenge.</small>
           </div>
           <article class="page-card target-card">
             <img id="targetImage" alt="" />
             <div>
               <span>Goal</span>
-              <strong id="targetTitle">Charles Babbage</strong>
+              <strong id="targetTitle">等待目标</strong>
               <button type="button" id="readTargetButton" disabled>Read Goal</button>
             </div>
           </article>
@@ -45,18 +45,18 @@
             <ol id="pathList" class="path-list"></ol>
           </aside>
 
-          <section class="wiki-window" aria-label="Current Wikipedia page">
+          <section class="wiki-window" aria-label="Current Chinese Wikipedia page">
             <div class="page-header">
               <div>
                 <span id="moveCounter">0 moves</span>
-                <h2 id="currentTitle">Choose a challenge</h2>
+                <h2 id="currentTitle">Loading challenge</h2>
               </div>
-              <a id="wikiLink" href="https://en.wikipedia.org/wiki/Ada_Lovelace" target="_blank" rel="noreferrer">
-                Open Wikipedia
+              <a id="wikiLink" href="https://zh.wikipedia.org/wiki/%E7%8F%A0%E6%B1%9F%E9%9A%A7%E9%81%93?variant=zh-hans" target="_blank" rel="noreferrer">
+                Open Chinese Wikipedia
               </a>
             </div>
             <p id="extractText" class="extract">
-              Once the challenge is ready, this window shows the current Wikipedia article.
+              Once the challenge is ready, this window shows the current Chinese Wikipedia article.
             </p>
             <div id="linkWindow" class="wiki-article" aria-live="polite"></div>
           </section>
