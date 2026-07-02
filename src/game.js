@@ -176,6 +176,7 @@ async function getPageHtml(title) {
     node.remove();
   }
 
+  removeCitationLinks(template.content);
   removeBackMatterSections(template.content);
 
   for (const link of template.content.querySelectorAll("a[href]")) {
@@ -210,6 +211,30 @@ async function getPageHtml(title) {
   return html;
 }
 
+function removeCitationLinks(root) {
+  const citationSelectors = [
+    ".citation",
+    ".citation-needed",
+    ".noprint.Inline-Template",
+    ".reference",
+    ".reference-accessdate",
+    ".reference-text",
+    ".Template-Fact",
+    "a[href^=\"#cite_note\"]",
+    "a[href^=\"#cite_ref\"]",
+    "a[href*=\"#cite_note\"]",
+    "a[href*=\"#cite_ref\"]",
+    "a[href^=\"./#cite_note\"]",
+    "a[href^=\"./#cite_ref\"]",
+    "span[id^=\"cite_note\"]",
+    "span[id^=\"cite_ref\"]",
+  ];
+
+  for (const node of root.querySelectorAll(citationSelectors.join(", "))) {
+    node.remove();
+  }
+}
+
 function removeBackMatterSections(root) {
   const backMatterHeadings = new Set([
     "bibliography",
@@ -242,11 +267,16 @@ async function getPlayablePageLinks(title) {
   const template = document.createElement("template");
   template.innerHTML = html;
   const links = [...template.content.querySelectorAll("a[data-wiki-title]")]
+    .filter((link) => !isCitationHref(link.getAttribute("href") || ""))
     .map((link) => link.dataset.wikiTitle)
     .filter(Boolean);
   const uniqueLinks = [...new Set(links)];
   CACHE.set(key, uniqueLinks);
   return uniqueLinks;
+}
+
+function isCitationHref(href) {
+  return href.includes("#cite_note") || href.includes("#cite_ref");
 }
 
 async function getPageLinks(title) {
@@ -333,6 +363,15 @@ function shuffleStable(items, seedText) {
   return copy;
 }
 
+function shuffleRandom(items) {
+  const copy = [...items];
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
+  }
+  return copy;
+}
+
 function isGoodChallengeLink(title) {
   return (
     title.length >= 4 &&
@@ -346,10 +385,9 @@ function isGoodChallengeLink(title) {
   );
 }
 
-function pickBfsLinks(title, links, depth) {
+function pickBfsLinks(links) {
   const goodLinks = links.filter(isGoodChallengeLink);
-  const seeded = shuffleStable(goodLinks, `${title}:${depth}:${new Date().toDateString()}`);
-  return seeded.slice(0, FEATURED_BFS_BRANCH_LIMIT);
+  return shuffleRandom(goodLinks).slice(0, FEATURED_BFS_BRANCH_LIMIT);
 }
 
 async function findFeaturedTargetPath(source) {
@@ -381,7 +419,7 @@ async function findFeaturedTargetPath(source) {
         continue;
       }
 
-      const links = pickBfsLinks(entry.title, pageLinks, depth);
+      const links = pickBfsLinks(pageLinks);
       for (const linkedTitle of links) {
         const linkedKey = titleKey(linkedTitle);
         if (visited.has(linkedKey)) continue;
@@ -399,7 +437,7 @@ async function findFeaturedTargetPath(source) {
     }
 
     if (candidates.length > 0) {
-      const shuffledCandidates = shuffleStable(candidates, `${sourceCanonical}:${new Date().toDateString()}`);
+      const shuffledCandidates = shuffleRandom(candidates);
       for (const path of shuffledCandidates.slice(0, 30)) {
         try {
           await getPageSummary(path[path.length - 1]);
@@ -411,7 +449,7 @@ async function findFeaturedTargetPath(source) {
     }
 
     if (nextFrontier.length === 0 || pagesScanned >= FEATURED_BFS_PAGE_LIMIT) break;
-    frontier = shuffleStable(nextFrontier, `${sourceCanonical}:${depth}`).slice(0, FEATURED_BFS_PAGE_LIMIT);
+    frontier = shuffleRandom(nextFrontier).slice(0, FEATURED_BFS_PAGE_LIMIT);
   }
 
   throw new Error("Could not find a 3-step featured challenge from today's article. Try again.");
@@ -475,13 +513,15 @@ async function findShortestPath(source, target) {
 }
 
 function setLoading(isLoading, label = "Searching...") {
-  startButton.disabled = isLoading;
+  if (startButton) {
+    startButton.disabled = isLoading;
+    startButton.textContent = isLoading ? label : "Find Path";
+  }
   featuredButton.disabled = isLoading;
   solutionButton.disabled = isLoading || game.shortestPath.length === 0;
-  startButton.textContent = isLoading ? label : "Find Path";
-  featuredButton.textContent = isLoading ? "Building..." : "Featured Challenge";
-  sourceInput.disabled = isLoading;
-  targetInput.disabled = isLoading;
+  featuredButton.textContent = isLoading ? "Building..." : "New Challenge";
+  if (sourceInput) sourceInput.disabled = isLoading;
+  if (targetInput) targetInput.disabled = isLoading;
 }
 
 function setImage(img, summary) {
@@ -594,8 +634,8 @@ async function startChallenge(event) {
 
     sourceTitle.textContent = sourceSummary.title;
     targetTitle.textContent = targetSummary.title;
-    sourceInput.value = sourceSummary.title;
-    targetInput.value = targetSummary.title;
+    if (sourceInput) sourceInput.value = sourceSummary.title;
+    if (targetInput) targetInput.value = targetSummary.title;
     setImage(sourceImage, sourceSummary);
     setImage(targetImage, targetSummary);
     statusLabel.textContent = "Challenge ready";
@@ -635,8 +675,8 @@ async function startWithKnownPath(path, statusText) {
 
   sourceTitle.textContent = sourceSummary.title;
   targetTitle.textContent = targetSummary.title;
-  sourceInput.value = sourceSummary.title;
-  targetInput.value = targetSummary.title;
+  if (sourceInput) sourceInput.value = sourceSummary.title;
+  if (targetInput) targetInput.value = targetSummary.title;
   setImage(sourceImage, sourceSummary);
   setImage(targetImage, targetSummary);
   statusLabel.textContent = statusText;
@@ -662,7 +702,7 @@ async function startFeaturedChallenge() {
     const featuredTitle = await getTodaysFeaturedArticle();
     statusLabel.textContent = "BFS running";
     sourceTitle.textContent = featuredTitle;
-    sourceInput.value = featuredTitle;
+    if (sourceInput) sourceInput.value = featuredTitle;
     hintLabel.textContent = `Starting from ${featuredTitle}. Searching outward for a page 3 clicks away.`;
 
     const path = await findFeaturedTargetPath(featuredTitle);
@@ -736,13 +776,17 @@ function showSolution() {
   resultKicker.textContent = "Solution";
   resultTitle.textContent = `${moveLabel(game.shortestDistance)} path`;
   resultText.innerHTML = `
+    <div class="solution-destination">
+      Destination: <a href="${wikiUrl(game.target)}" target="_blank" rel="noreferrer">${game.target}</a>
+    </div>
     <ol class="solution-list">
       ${game.shortestPath
         .map(
           (title, index) => `
-            <li>
+            <li class="${index === game.shortestPath.length - 1 ? "destination-step" : ""}">
               <span>${index}</span>
               <a href="${wikiUrl(title)}" target="_blank" rel="noreferrer">${title}</a>
+              ${index === game.shortestPath.length - 1 ? "<strong>Destination</strong>" : ""}
             </li>
           `,
         )
@@ -761,7 +805,7 @@ function resetRun() {
   loadCurrentPage(game.source);
 }
 
-challengeForm.addEventListener("submit", startChallenge);
+challengeForm?.addEventListener("submit", startChallenge);
 featuredButton.addEventListener("click", startFeaturedChallenge);
 resetRunButton.addEventListener("click", resetRun);
 solutionButton.addEventListener("click", showSolution);

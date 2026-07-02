@@ -9,21 +9,6 @@
   <body>
     <main class="app-shell">
       <section class="challenge-board" aria-label="Wiki path challenge">
-        <header class="topbar">
-          <form class="challenge-form" id="challengeForm">
-            <label>
-              <span>Source</span>
-              <input id="sourceInput" name="source" value="Ada Lovelace" autocomplete="off" />
-            </label>
-            <label>
-              <span>Destination</span>
-              <input id="targetInput" name="target" value="Charles Babbage" autocomplete="off" />
-            </label>
-            <button type="submit" id="startButton">Find Path</button>
-            <button type="button" id="featuredButton">Featured Challenge</button>
-          </form>
-        </header>
-
         <section class="summary-band" aria-live="polite">
           <article class="page-card source-card">
             <img id="sourceImage" alt="" />
@@ -52,6 +37,7 @@
             <div class="panel-heading">
               <span>Current path</span>
               <div class="path-actions">
+                <button type="button" id="featuredButton">New Challenge</button>
                 <button type="button" id="solutionButton" disabled>Show Solution</button>
                 <button type="button" id="resetRunButton" disabled>Reset Run</button>
               </div>

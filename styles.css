@@ -50,11 +50,10 @@ input:disabled {
 .challenge-board {
   min-height: calc(100vh - clamp(28px, 4.8vw, 60px));
   display: grid;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 14px;
 }
 
-.topbar,
 .summary-band,
 .path-panel,
 .wiki-window {
@@ -63,10 +62,6 @@ input:disabled {
   background: rgba(255, 253, 248, 0.9);
   box-shadow: 0 18px 44px rgba(57, 52, 44, 0.12);
   backdrop-filter: blur(12px);
-}
-
-.topbar {
-  padding: 18px;
 }
 
 .page-card span,
@@ -86,13 +81,6 @@ label span,
 h2,
 p {
   margin: 0;
-}
-
-.challenge-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto auto;
-  gap: 10px;
-  align-items: end;
 }
 
 label {
@@ -116,7 +104,6 @@ input:focus {
   box-shadow: 0 0 0 3px rgba(46, 122, 128, 0.16);
 }
 
-.challenge-form button,
 .panel-heading button,
 .result-actions button {
   min-height: 44px;
@@ -126,12 +113,6 @@ input:focus {
   background: #1f646a;
   color: #ffffff;
   font-weight: 850;
-}
-
-.challenge-form button + button {
-  border: 1px solid #c9d2d0;
-  background: #ffffff;
-  color: #27302f;
 }
 
 .panel-heading button,
@@ -489,15 +470,34 @@ input:focus {
   list-style: none;
 }
 
+.solution-destination {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(164, 71, 45, 0.28);
+  border-radius: 6px;
+  background: #fff1df;
+  color: #783b1f;
+  font-weight: 850;
+}
+
+.solution-destination a {
+  color: #783b1f;
+}
+
 .solution-list li {
   display: grid;
-  grid-template-columns: 34px minmax(0, 1fr);
+  grid-template-columns: 34px minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
   padding: 10px;
   border: 1px solid rgba(49, 63, 66, 0.12);
   border-radius: 6px;
   background: #ffffff;
+}
+
+.solution-list li.destination-step {
+  border-color: rgba(164, 71, 45, 0.28);
+  background: #fffaf2;
 }
 
 .solution-list span {
@@ -519,13 +519,17 @@ input:focus {
   text-decoration: none;
 }
 
+.solution-list strong {
+  color: #a4472d;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
 @media (max-width: 860px) {
   body {
     background-size: 360px, auto;
   }
 
-  .topbar,
-  .challenge-form,
   .summary-band,
   .play-grid {
     grid-template-columns: 1fr;
@@ -547,7 +551,6 @@ input:focus {
     padding: 10px;
   }
 
-  .topbar,
   .summary-band,
   .path-panel,
   .wiki-window {
